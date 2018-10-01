@@ -12,10 +12,14 @@
             <span v-if="column.sort" class="arrow" :class="sortOrders[column.key] > 0 ? 'asc' : 'dsc'">
             </span>
           </th>
+          <th class="yhtable-empty-th"></th>
         </tr>
       </thead>
       </table>
     </div>
+    <!--
+    <div v-slimscroll="vscrollOptions" id="yhtable-body-div" style="height:400px; overflowY:scroll" class="yhtable-body-div" @scroll.self="handlerScroll()">
+  -->
     <div id="yhtable-body-div" style="height:400px; overflowY:scroll" class="yhtable-body-div" @scroll.self="handlerScroll()">
       <div>
         <div :style="topBufferStyle"></div>
@@ -54,7 +58,6 @@ export default {
     items: Array,
     columns: Array,
     filterKey: String,
-    options: Object,
     blockFactor: {
       type: Number,
       default: 0.5
@@ -69,6 +72,7 @@ export default {
       sortKey: '',
       sortOrders: sortOrders,
       activeItems: [],
+      sortedItems: [],
       scrollTimeout: null,
       topBufferStyle: {
         height: 0
@@ -77,10 +81,22 @@ export default {
         height: 0
       },
       preStart: 0,
-      preEnd: 0
+      preEnd: 0,
+      bodyDiv: null,
+      vscrollOptions: {
+        height: 400,
+        size: '7px',
+        color: 'green',
+        alwaysVisible: true,
+        railVisible: true,
+        railColor: '#FFF',
+        borderRadius: '6px',
+        wheelStep: 1
+      }
     }
   },
   mounted: function () {
+    this.bodyDiv = document.getElementById('yhtable-body-div')
     this.computeDisplayItems()
   },
   computed: {
@@ -88,7 +104,7 @@ export default {
       const sortKey = this.sortKey
       const filterKey = this.filterKey && this.filterKey.toLowerCase()
       const order = this.sortOrders[sortKey] || 1
-      let data = this.activeItems
+      let data = this.items
       if (filterKey) {
         data = data.filter(function (row) {
           return Object.keys(row).some(c => {
@@ -106,17 +122,17 @@ export default {
       return data
     },
     blockSize () {
-      return this.options.height * this.blockFactor
+      return this.vscrollOptions.height * this.blockFactor
     },
     preloadSize () {
-      return this.options.height
+      return this.vscrollOptions.height
     },
     totalScrollableHeight () {
       return this.items.length * 20
     },
     containerStyle () {
       return {
-        height: this.options.height + 'px',
+        height: this.vscrollOptions.height + 'px',
         overflowX: 'hidden',
         overflowY: 'scroll',
         webkitOverflowScrolling: 'touch'
@@ -141,34 +157,38 @@ export default {
       if (column.sort) {
         this.sortKey = column.key
         this.sortOrders[column.key] = this.sortOrders[column.key] * -1
+        const sortKey = this.sortKey
+        const filterKey = this.filterKey && this.filterKey.toLowerCase()
+        const order = this.sortOrders[sortKey] || 1
+        let data = this.items
+        if (filterKey) {
+          data = data.filter(function (row) {
+            return Object.keys(row).some(c => {
+              return String(row[c.key]).toLowerCase().indexOf(filterKey) > -1
+            })
+          })
+        }
+        if (sortKey) {
+          data = data.slice().sort(function (a, b) {
+            a = a[sortKey]
+            b = b[sortKey]
+            return (a === b ? 0 : a > b ? 1 : -1) * order
+          })
+          this.sortedItems = data
+          console.log('-------------')
+          for(var i=0; i<10; i++){
+            console.log(this.sortedItems[i])
+          }
+          console.log('-------------')
+        }
       }
+      this.computeDisplayItems()
     },
     handlerScroll () {
       this.computeDisplayItems()
     },
     computeDisplayItems () {
-      /**
-      sort and filltering
-      const sortKey = this.sortKey
-      const filterKey = this.filterKey && this.filterKey.toLowerCase()
-      const order = this.sortOrders[sortKey] || 1
-      let data = this.activeItems
-      if (filterKey) {
-        data = data.filter(function (row) {
-          return Object.keys(row).some(c => {
-            return String(row[c.key]).toLowerCase().indexOf(filterKey) > -1
-          })
-        })
-      }
-      if (sortKey) {
-        data = data.slice().sort(function (a, b) {
-          a = a[sortKey]
-          b = b[sortKey]
-          return (a === b ? 0 : a > b ? 1 : -1) * order
-        })
-      }
-      **/
-      const scrollTop = this.$el.querySelector('#yhtable-body-div').scrollTop || 0
+      const scrollTop = this.bodyDiv.scrollTop || 0
       const blockNumber = this.blockSize === 0 ? 0 : Math.floor(scrollTop / this.blockSize)
       const blockStart = this.blockSize * blockNumber
       const blockEnd = blockStart + this.blockSize
@@ -178,14 +198,23 @@ export default {
       const nonZeroIndex = Math.ceil(apertureBottom / 20)
       const displayIndexEnd = nonZeroIndex > 0 ? nonZeroIndex - 1 : nonZeroIndex
 
-      if (displayIndexStart === this.preStart && displayIndexEnd === this.preEnd) {
+      console.log('displayIndexStart :' + displayIndexStart + ', displayIndexEnd :' + displayIndexEnd)
+      if ((displayIndexStart === this.preStart && displayIndexEnd === this.preEnd) && !this.sortKey) {
         return
       }
+
       this.preStart = displayIndexStart
       this.preEnd = displayIndexEnd
-      this.activeItems = this.items.slice(displayIndexStart, displayIndexEnd + 1)
+      if (this.sortKey) {
+        console.log('use sorted items')
+        this.activeItems = this.sortedItems.slice(displayIndexStart, displayIndexEnd + 1)
+      } else {
+        console.log('use default items')
+        this.activeItems = this.items.slice(displayIndexStart, displayIndexEnd + 1)
+      }
       this.topBufferStyle.height = displayIndexStart * 20 + 'px'
       this.bottomBufferStyle.height = Math.max(0, (this.items.length - displayIndexEnd - 1) * 20) + 'px'
+
     }
   }
 }
@@ -284,5 +313,9 @@ th.active .arrow {
 }
 .yhtable-row-even {
   background: #f5f6fa;
+}
+.yhtable-empty-th {
+  width: 15px;
+  border-left:0px !important;
 }
 </style>

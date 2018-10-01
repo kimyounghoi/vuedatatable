@@ -22,12 +22,8 @@ export default {
     return {
       tableName: 'test',
       searchQuery: '',
-      scrollOptions: {
-        height: 400,
-        size: 3
-      },
       tableColumns: [
-        {key: 'idx', name: 'No', width: 30},
+        {key: 'idx', sort: true, name: 'No', width: 50},
         {key: 'name', name: 'Name', width: 200, sort: true, textwrap: 'ellipsis'},
         {key: 'id', width: 100, sort: true, textwrap: 'ellipsis'},
         {key: 'email', sort: true},
