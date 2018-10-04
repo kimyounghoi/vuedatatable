@@ -14,7 +14,9 @@
     "build": "node build/build.js"
   },
   "dependencies": {
+    "jquery": "^3.3.1",
     "vue": "^2.5.2",
+    "vue-scroll-sync": "^1.0.5",
     "vue-slimscroll": "^1.0.1"
   },
   "devDependencies": {

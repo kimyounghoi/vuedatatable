@@ -1,12 +1,13 @@
 <template>
   <div id="app">
+    <div style="width:100%">
     <yhtable
       :name="tableName"
       :items="tableData"
       :columns="tableColumns"
       :filter-key="searchQuery"
-      :options="scrollOptions"
     ></yhtable>
+    </div>
   </div>
 </template>
 
@@ -23,11 +24,11 @@ export default {
       tableName: 'test',
       searchQuery: '',
       tableColumns: [
-        {key: 'idx', sort: true, name: 'No', width: 50},
-        {key: 'name', name: 'Name', width: 200, sort: true, textwrap: 'ellipsis'},
-        {key: 'id', width: 100, sort: true, textwrap: 'ellipsis'},
-        {key: 'email', sort: true},
-        {key: 'cellphone', width: 150}
+        {key: 'idx', sort: true, name: 'No', width: 60},
+        {key: 'name', name: 'Name', width: 100, sort: true, textwrap: 'ellipsis'},
+        {key: 'id', width: 200, sort: true, textwrap: 'ellipsis'},
+        {key: 'email', width: 200, sort: true},
+        {key: 'cellphone', width: 400, align: 'c'}
       ],
       tableData: []
     }

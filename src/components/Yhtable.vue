@@ -1,26 +1,34 @@
 <template>
   <div class="yhtable-wrap">
-    <div class="yhtable-header-div">
+    <div id="yhtable-header-div" class="yhtable-header-div" style="overflow-x:hidden">
+      <div>
       <table :id="name" class="yhtable">
       <thead>
         <tr>
           <th v-for="column in columns" :key="column.key"
             @click="sortBy(column)"
             :style="[column.width ? {width:column.width + 'px'} : '']"
-            :class="[{active: sortKey == column.key}, {'yhtable-th-sortable': column.sort}]">
+            :class="[{active: sortKey == column.key}, {'yhtable-th-sortable': column.sort},
+            {'yhtable-content-align-c': column.align == 'c'},
+            {'yhtable-content-align-l': column.align == 'l'},
+            {'yhtable-content-align-r': column.align == 'r'},
+            ]">
             {{ column.name || column.key }}
             <span v-if="column.sort" class="arrow" :class="sortOrders[column.key] > 0 ? 'asc' : 'dsc'">
             </span>
           </th>
+          <!--
           <th class="yhtable-empty-th"></th>
+        -->
         </tr>
       </thead>
       </table>
+      </div>
     </div>
-    <!--
-    <div v-slimscroll="vscrollOptions" id="yhtable-body-div" style="height:400px; overflowY:scroll" class="yhtable-body-div" @scroll.self="handlerScroll()">
-  -->
+    <div v-slimscroll="vscrollOptions" id="yhtable-body-div" style="height:400px; overflow-x:scroll" class="yhtable-body-div" @scroll.self="handlerScroll()">
+        <!--
     <div id="yhtable-body-div" style="height:400px; overflowY:scroll" class="yhtable-body-div" @scroll.self="handlerScroll()">
+  -->
       <div>
         <div :style="topBufferStyle"></div>
         <div>
@@ -51,6 +59,8 @@
 </template>
 
 <script>
+import jQuery from 'jquery'
+
 export default {
   name: 'yhtable',
   props: {
@@ -85,19 +95,24 @@ export default {
       bodyDiv: null,
       vscrollOptions: {
         height: 400,
-        size: '7px',
-        color: 'green',
+        size: '3px',
+        color: 'black',
         alwaysVisible: true,
         railVisible: true,
         railColor: '#FFF',
-        borderRadius: '6px',
-        wheelStep: 1
+        wheelStep: 1,
+        axis: 'both'
       }
     }
   },
   mounted: function () {
     this.bodyDiv = document.getElementById('yhtable-body-div')
+    const headerDiv = document.getElementById('yhtable-header-div')
     this.computeDisplayItems()
+    jQuery(this.bodyDiv).on('scroll', function () {
+      jQuery(headerDiv).scrollLeft(jQuery(this).scrollLeft())
+    })
+
   },
   computed: {
     filteredData () {
@@ -129,14 +144,6 @@ export default {
     },
     totalScrollableHeight () {
       return this.items.length * 20
-    },
-    containerStyle () {
-      return {
-        height: this.vscrollOptions.height + 'px',
-        overflowX: 'hidden',
-        overflowY: 'scroll',
-        webkitOverflowScrolling: 'touch'
-      }
     }
   },
   watch: {
@@ -175,11 +182,6 @@ export default {
             return (a === b ? 0 : a > b ? 1 : -1) * order
           })
           this.sortedItems = data
-          console.log('-------------')
-          for(var i=0; i<10; i++){
-            console.log(this.sortedItems[i])
-          }
-          console.log('-------------')
         }
       }
       this.computeDisplayItems()
@@ -214,7 +216,6 @@ export default {
       }
       this.topBufferStyle.height = displayIndexStart * 20 + 'px'
       this.bottomBufferStyle.height = Math.max(0, (this.items.length - displayIndexEnd - 1) * 20) + 'px'
-
     }
   }
 }
@@ -237,7 +238,6 @@ th {-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-sel
   height: 20px;
 }
 .yhtable-body-div table th {
-  border-left: 0px;
   border-width: 0px;
   margin: 0;
   padding: 0px;
@@ -259,6 +259,7 @@ th.active .arrow {
 .yhtable {
   border-collapse: collapse;
   border-spacing: 0;
+  table-layout: fixed;
 }
 
 .yhtable thead {
@@ -275,7 +276,6 @@ th.active .arrow {
   border-left-width: 0;
 }
 .yhtable td, .yhtable th {
-  border-left: 1px solid #cbcbcb;
   border-width: 0 0 0 1px;
   margin: 0;
   /*padding: .5em .5em;*/
@@ -317,5 +317,14 @@ th.active .arrow {
 .yhtable-empty-th {
   width: 15px;
   border-left:0px !important;
+}
+.yhtable-content-align-l {
+  text-align: left;
+}
+.yhtable-content-align-r {
+  text-align: right;
+}
+.yhtable-content-align-c {
+  text-align: center;
 }
 </style>
