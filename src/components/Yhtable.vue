@@ -25,8 +25,8 @@
       </table>
       </div>
     </div>
-    <div v-slimscroll="vscrollOptions" id="yhtable-body-div" style="height:400px; overflow-x:scroll" class="yhtable-body-div" @scroll.self="handlerScroll()">
-        <!--
+    <div v-slimscroll="vscrollOptions" id="yhtable-body-div" style="height:400px; overflowX:scroll" class="yhtable-body-div" @scroll.self="handlerScroll()">
+      <!--
     <div id="yhtable-body-div" style="height:400px; overflowY:scroll" class="yhtable-body-div" @scroll.self="handlerScroll()">
   -->
       <div>
@@ -44,7 +44,7 @@
             <tr v-for="(entry, index) in activeItems" :key="entry.idx" :class="{'yhtable-row-even': index % 2, 'yhtable-row-odd': !(index % 2)}">
               <td v-for="column in columns" :key="column.key">
                 <div :style="[column.width ? {width:column.width + 'px'} : '']"
-                     :class="[column.textwrap == 'ellipsis' ? 'yhtable-content-ellipsis' : 'yhtable-content-wrap']">
+                     :class="[column.textwrap == 'linebreak' ? 'yhtable-content-wrap' : 'yhtable-content-ellipsis']">
                      {{entry[column.key]}}
                 </div>
               </td>
@@ -107,12 +107,14 @@ export default {
   },
   mounted: function () {
     this.bodyDiv = document.getElementById('yhtable-body-div')
+
+    jQuery('#yhtable-body-div').addClass('yhtable-scroll')
+
     const headerDiv = document.getElementById('yhtable-header-div')
     this.computeDisplayItems()
     jQuery(this.bodyDiv).on('scroll', function () {
       jQuery(headerDiv).scrollLeft(jQuery(this).scrollLeft())
     })
-
   },
   computed: {
     filteredData () {
@@ -200,7 +202,6 @@ export default {
       const nonZeroIndex = Math.ceil(apertureBottom / 20)
       const displayIndexEnd = nonZeroIndex > 0 ? nonZeroIndex - 1 : nonZeroIndex
 
-      console.log('displayIndexStart :' + displayIndexStart + ', displayIndexEnd :' + displayIndexEnd)
       if ((displayIndexStart === this.preStart && displayIndexEnd === this.preEnd) && !this.sortKey) {
         return
       }
@@ -208,10 +209,8 @@ export default {
       this.preStart = displayIndexStart
       this.preEnd = displayIndexEnd
       if (this.sortKey) {
-        console.log('use sorted items')
         this.activeItems = this.sortedItems.slice(displayIndexStart, displayIndexEnd + 1)
       } else {
-        console.log('use default items')
         this.activeItems = this.items.slice(displayIndexStart, displayIndexEnd + 1)
       }
       this.topBufferStyle.height = displayIndexStart * 20 + 'px'
@@ -286,7 +285,7 @@ th.active .arrow {
   width: 0;
   height: 0;
   margin-left: 5px;
-  opacity: 0.66;
+  opacity: 0.36;
 }
 .yhtable-th-sortable {
   cursor: pointer;
@@ -326,5 +325,9 @@ th.active .arrow {
 }
 .yhtable-content-align-c {
   text-align: center;
+}
+.yhtable-scroll {
+  overflow-y: hidden !important;
+  overflow-x: auto !important;
 }
 </style>

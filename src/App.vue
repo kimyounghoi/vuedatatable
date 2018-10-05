@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <div style="width:100%">
+    <div style="width:1000px">
     <yhtable
       :name="tableName"
       :items="tableData"
@@ -25,9 +25,9 @@ export default {
       searchQuery: '',
       tableColumns: [
         {key: 'idx', sort: true, name: 'No', width: 60},
-        {key: 'name', name: 'Name', width: 100, sort: true, textwrap: 'ellipsis'},
-        {key: 'id', width: 200, sort: true, textwrap: 'ellipsis'},
-        {key: 'email', width: 200, sort: true},
+        {key: 'name', name: 'Name', width: 100, sort: true},
+        {key: 'id', width: 300, sort: true},
+        {key: 'email', width: 300, sort: true},
         {key: 'cellphone', width: 400, align: 'c'}
       ],
       tableData: []
